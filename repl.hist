@@ -1,0 +1,24 @@
+#V2
+hello
+hello world
+my name is
+clear
+exit
+asdf
+d
+a
+e
+3
+4
+()
+(2)
+(2 3 4)
+(+ 2 3 4)
+(+ 2 3 4 (* 2 4))
+asdf
+(+ 2 3 4)
+clear
+(+2 2)
+(-2 2)
+(+ 2 2)
+(*2 2)
