@@ -1,4 +1,7 @@
-use crate::parser::{parse, tokenize};
+use crate::{
+    env::Env,
+    parser::{eval, parse, tokenize, Expr},
+};
 use rustyline::{error::ReadlineError, Editor};
 
 const HIST_FILE: &'static str = "repl.hist";
@@ -6,6 +9,8 @@ const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
 pub fn init() {
     let mut rl = Editor::<()>::new();
+    let mut env = Env::new();
+
     println!("Schreme version {}", VERSION);
     if rl.load_history(HIST_FILE).is_err() {
         eprintln!("No previous history file exists");
@@ -15,7 +20,26 @@ pub fn init() {
         match rl.readline(">> ") {
             Ok(line) => {
                 rl.add_history_entry(line.as_str());
-                parse_line(&line);
+                let tokens = tokenize(line);
+                let parsed = parse(tokens.as_slice()).unwrap().0;
+                match eval(&mut env, &parsed) {
+                    Ok(v) => {
+                        let res = match v {
+                            Expr::Symbol(s) => s.clone(),
+                            Expr::Number(n) => n.to_string(),
+                            Expr::List(list) => {
+                                let xs: Vec<String> = list
+                                    .iter()
+                                    .map(|x| format!("{:?}", eval(&mut env, x)))
+                                    .collect();
+                                format!("({})", xs.join(","))
+                            }
+                            Expr::Fun(_) => "Function {}".to_string(),
+                        };
+                        println!("{:?}", v);
+                    }
+                    Err(_) => {}
+                };
             }
             Err(ReadlineError::Interrupted) => {
                 println!("CTRL-C");
